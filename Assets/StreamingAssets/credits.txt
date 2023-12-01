@@ -1,3 +1,5 @@
 https://github.com/Quirlight/Nebula_Shader_Unity3D/tree/master Nebula Shader
+https://github.com/maxartz15/VolumetricLighting Volumetric Lighting
+https://github.com/maxfelker/terrain-generator-unity3d Terrain Generator
 focus by ibrandify from https://thenounproject.com/browse/icons/term/focus/Noun Noun Project (CC BY 3.0)
 Crosshair by Kemesh Maharjan from https://thenounproject.com/browse/icons/term/crosshair/ Noun Project (CC BY 3.0)

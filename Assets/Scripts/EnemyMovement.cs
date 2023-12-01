@@ -1,22 +1,34 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyMovement : MonoBehaviour
 {
-    public float speed = 5.0f; // Adjust the speed of enemy movement as needed
-    public float rotationSpeed = 2.0f; // Adjust the rotation speed as needed
-    public Transform target; // The target to follow (another enemy)
-    public bool followTarget = false; // Enable or disable following the target
-    public float spiralRadius = 5.0f; // Radius of the spiral movement
-    public float spiralSpeed = 2.0f; // Speed of the spiral movement
+    public float speed = 15.0f;
+    public float rotationSpeed = 15.0f;
+    public Transform player;
+    public Transform target;
+    public bool followTarget = true;
+    public float spiralRadius = 5.0f;
+    public float spiralSpeed = 2.0f;
+    public GameObject shotPrefab;
+    public Transform gun;
+    public float timeBetweenShots = 0.3f;
+    private float timer = 0f;
+
+    private Vector3 randomMoveTarget; // New variable to store the randomly selected move target
 
     void Start()
     {
-        if (followTarget && target == null)
+        player = GameObject.Find("moveto").transform;
+        target = GameObject.Find("target").transform;
+        if (followTarget && player == null)
         {
-            // If following a target is enabled, but the target is not assigned, disable following.
-            followTarget = false;
+            gameObject.SetActive(false);
+        }
+        else
+        {
+            // Select a random move target upon spawn
+            SelectRandomMoveTarget();
         }
     }
 
@@ -24,18 +36,14 @@ public class EnemyMovement : MonoBehaviour
     {
         if (followTarget)
         {
-            if (target != null)
+            if (player != null)
             {
-                // Calculate the direction to the target
-                Vector3 direction = (target.position - transform.position).normalized;
-
-                // Rotate towards the target
+                Vector3 direction = (player.position - transform.position).normalized;
                 Quaternion lookRotation = Quaternion.LookRotation(direction);
                 transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, rotationSpeed * Time.deltaTime);
             }
             else
             {
-                // If the target is lost or destroyed, stop following.
                 followTarget = false;
             }
         }
@@ -45,9 +53,54 @@ public class EnemyMovement : MonoBehaviour
             float angle = Time.time * spiralSpeed;
             Vector3 spiralPosition = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * spiralRadius;
             transform.position = spiralPosition;
+
+            // Check if the enemy is close to the randomly selected move target
+            if (Vector3.Distance(transform.position, randomMoveTarget) < 1.0f)
+            {
+                // Upon reaching the move target, select a new random move target
+                SelectRandomMoveTarget();
+            }
         }
 
-        // Move forward
+        if (IsFacingPlayer() && timer >= timeBetweenShots)
+        {
+            float distance = Vector3.Distance(target.position, transform.position);
+            if (distance < 150f)
+            {
+                FireShot();
+                timer = 0f;
+            }
+        }
+
+        timer += Time.deltaTime;
         transform.Translate(Vector3.forward * speed * Time.deltaTime);
+    }
+
+    bool IsFacingPlayer()
+    {
+        if (player != null)
+        {
+            Vector3 directionToPlayer = player.position - transform.position;
+            float angleToPlayer = Mathf.Atan2(directionToPlayer.y, directionToPlayer.x) * Mathf.Rad2Deg;
+            float angleDifference = Mathf.Abs(Mathf.DeltaAngle(transform.rotation.eulerAngles.z, angleToPlayer));
+
+            float thresholdAngle = 90f;
+
+            return angleDifference < thresholdAngle;
+        }
+
+        return false;
+    }
+
+    void FireShot()
+    {
+        GameObject go = Instantiate(shotPrefab, gun.position, gun.rotation) as GameObject;
+        Destroy(go, 3f);
+    }
+
+    void SelectRandomMoveTarget()
+    {
+        // Generate a new random move target within a certain range
+        randomMoveTarget = transform.position + new Vector3(Random.Range(-10f, 10f), 0f, Random.Range(-10f, 10f));
     }
 }

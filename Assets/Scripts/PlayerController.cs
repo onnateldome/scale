@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -29,14 +30,25 @@ public class PlayerController : MonoBehaviour
     float horizontalThrow = 0f;
     float verticalThrow = 0f;
     bool canMove = true;
-
+    public GameObject m_shotPrefab;
+    public Transform gun;
+    private float timeBetweenShots = 1f / 4f; // Adjust this value to control the firing rate
+    private float timer = 0f;
 
     void Update()
     {
+        timer += Time.deltaTime;
         if (canMove)
         {
             ProcessMovementInput();
             ProcessRotation();
+        }
+
+        if (timer >= timeBetweenShots && Input.GetMouseButton(0))
+        {
+            GameObject go = GameObject.Instantiate(m_shotPrefab, gun.position, gun.rotation) as GameObject;
+            GameObject.Destroy(go, 3f);
+            timer = 0f;
         }
     }
 
